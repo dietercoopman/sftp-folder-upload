@@ -1,12 +1,15 @@
 # Changelog
 
+## 0.2.2
+
+- Marketplace listing: README with a rating badge, a "Get started in 30 seconds" section, a comparison with uploading by hand, more FAQ, links to Git SFTP Upload and SFTP Remote Editor, and links to rate the extension. More search keywords. No functional changes.
+
 ## 0.2.1
 
 - A file excluded for only some servers (for example only in the `ignore` list of one profile) is no longer shown as never uploaded, and **Never Upload** now adds it to the other lists instead of saying it is already excluded.
 - **Never Upload** on a path with `[`, `]` or `*` in its name (such as `app/[slug]/page.tsx`) now writes an escaped pattern, so that exact path is excluded.
 - **Allow Upload** is offered in the Explorer for excluded items on Windows too.
 - README: the SFTP extension by Natizyskunk does not check the `ignore` list for its Upload File and Force Upload commands.
-- Marketplace listing: README with a rating badge, a "Get started in 30 seconds" section, a comparison with uploading by hand, more FAQ, links to Git SFTP Upload and SFTP Remote Editor, and links to rate the extension. More search keywords.
 
 ## 0.2.0
 
