@@ -44,7 +44,7 @@ Before anything is sent, the server is compared with your files. A file is uploa
 
 Right-click `.env`, a cache folder or anything else that must stay on your machine, and choose **Never Upload**. The path is added to the `ignore` list in `.vscode/sftp.json` (as `/.env` or `/wp-content/cache/`), for every server whose `context` contains it. From then on it is marked with ⊘ in the Explorer and is never uploaded, also not when you select it on its own. **Allow Upload** on the same item removes it from the list again.
 
-Because the list lives in sftp.json, it is shared with your team through the repository, and Git SFTP Upload and the SFTP extension by Natizyskunk skip the same files.
+Because the list lives in sftp.json, it is shared with your team through the repository, and Git SFTP Upload skips the same files. The SFTP extension by Natizyskunk skips them on save and in folder uploads, but its **Upload File** and **Force Upload** commands send a file you select on its own anyway: they ignore the list by design.
 
 ![Never Upload in the context menu of .env, and .env and the cache folder marked as never uploaded](images/marketplace/neverupload.png)
 
@@ -110,7 +110,7 @@ Settings:
 ## FAQ
 
 **Where is the Never Upload list stored?**
-In the `ignore` list of `.vscode/sftp.json`, the same list the SFTP extension by Natizyskunk uses. Commit sftp.json (without passwords) and your whole team skips the same files. Wider patterns such as `*.log` can be added by hand; the Explorer marks those files too.
+In the `ignore` list of `.vscode/sftp.json`, the same list the SFTP extension by Natizyskunk uses. Commit sftp.json (without passwords) and your whole team skips the same files. Note that Natizyskunk's **Upload File** and **Force Upload** on a single file do not check the list. Wider patterns such as `*.log` can be added by hand; the Explorer marks those files too.
 
 **Does it delete files on the server that I deleted locally?**
 No. It only uploads. Nothing on the server is ever removed.

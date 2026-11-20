@@ -7,7 +7,7 @@ import * as vscode from 'vscode';
 import * as fs from 'fs';
 import * as path from 'path';
 import { configPathFor } from './config';
-import { addPath, ConfigEntry, entriesFor, IgnoreMatch, matchPath, parseEntries, removePath } from './ignoreRules';
+import { addPath, ConfigEntry, entriesFor, IgnoreMatch, matchPath, matchPathAny, parseEntries, removePath } from './ignoreRules';
 import { log } from './util';
 
 interface Loaded {
@@ -28,7 +28,10 @@ async function isDirectory(fsPath: string): Promise<boolean> {
 
 export class NeverUpload implements vscode.FileDecorationProvider, vscode.Disposable {
   private readonly loaded = new Map<string, Promise<Loaded | undefined>>();
-  /** Excluded paths seen by the decorations, published as a context key for the Explorer menu. */
+  /**
+   * Excluded paths seen by the decorations, published as a context key for the Explorer menu. These are URI paths
+   * ("/c:/site/.env" on Windows), because the menu compares them with resourcePath.
+   */
   private readonly excluded = new Set<string>();
   private contextTimer: NodeJS.Timeout | undefined;
   private readonly emitter = new vscode.EventEmitter<vscode.Uri | vscode.Uri[] | undefined>();
@@ -89,10 +92,12 @@ export class NeverUpload implements vscode.FileDecorationProvider, vscode.Dispos
     return p;
   }
 
-  async match(fsPath: string, isDir: boolean): Promise<IgnoreMatch | undefined> {
+  /** The rule that keeps the path from every server, or with `any`, from at least one server. */
+  async match(fsPath: string, isDir: boolean, any = false): Promise<IgnoreMatch | undefined> {
     const folder = vscode.workspace.getWorkspaceFolder(vscode.Uri.file(fsPath));
     const loaded = folder && (await this.load(folder));
-    return loaded ? matchPath(loaded.entries, [], fsPath, isDir) : undefined;
+    if (!loaded) return undefined;
+    return (any ? matchPathAny : matchPath)(loaded.entries, [], fsPath, isDir);
   }
 
   private publishExcluded(): void {
@@ -105,9 +110,9 @@ export class NeverUpload implements vscode.FileDecorationProvider, vscode.Dispos
   async provideFileDecoration(uri: vscode.Uri): Promise<vscode.FileDecoration | undefined> {
     if (uri.scheme !== 'file' || !vscode.workspace.getWorkspaceFolder(uri)) return undefined;
     const m = await this.match(uri.fsPath, await isDirectory(uri.fsPath));
-    const had = this.excluded.has(uri.fsPath);
-    if (m) this.excluded.add(uri.fsPath);
-    else this.excluded.delete(uri.fsPath);
+    const had = this.excluded.has(uri.path);
+    if (m) this.excluded.add(uri.path);
+    else this.excluded.delete(uri.path);
     if (had !== !!m) this.publishExcluded();
     if (!m) return undefined;
     const show = vscode.workspace.getConfiguration('sftpFolderUpload', uri).get<boolean>('showNeverUploadInExplorer', true);
@@ -172,6 +177,7 @@ export class NeverUpload implements vscode.FileDecorationProvider, vscode.Dispos
         return text;
       }
       const result = addPath(text, folder.uri.fsPath, uri.fsPath, isDir);
+      if (!result.added.length) return text;
       result.added.forEach((a) => log(`Never upload: ${a}`));
       done.push(path.basename(uri.fsPath) + (isDir ? '/' : ''));
       return result.text;
@@ -191,9 +197,9 @@ export class NeverUpload implements vscode.FileDecorationProvider, vscode.Dispos
       return result.text;
     });
 
-    // Still excluded by a wider pattern such as *.log or a parent folder: say which, and where to change it.
+    // Still excluded by a wider pattern such as *.log or a parent folder, for any server: say which, and where.
     for (const uri of targets) {
-      const m = await this.match(uri.fsPath, await isDirectory(uri.fsPath));
+      const m = await this.match(uri.fsPath, await isDirectory(uri.fsPath), true);
       if (!m) continue;
       const folder = vscode.workspace.getWorkspaceFolder(uri)!;
       const where = m.list ? `"${m.list.label}"` : 'sftp.json';

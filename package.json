@@ -2,7 +2,7 @@
   "name": "sftp-folder-upload",
   "displayName": "SFTP Folder Upload",
   "description": "Upload a folder or your whole project to your server over SFTP or FTPS in one go, following symbolic links like PhpStorm does. Mark files such as .env as Never Upload, right in the Explorer. Uses your existing .vscode/sftp.json.",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "publisher": "delta-solutions",
   "author": "Delta Solutions",
   "license": "MIT",

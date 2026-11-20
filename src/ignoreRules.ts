@@ -92,21 +92,39 @@ function ignores(patterns: string[], rel: string, isDir: boolean): boolean {
   return patterns.length > 0 && matcher(patterns).ignores(isDir ? `${rel}/` : rel);
 }
 
-/** The pattern that excludes the path, or undefined when it may be uploaded to at least one server. */
-export function matchPath(entries: ConfigEntry[], alwaysIgnore: string[], fsPath: string, isDir: boolean): IgnoreMatch | undefined {
+/** For every list of every server whose context contains the path: the rule that excludes it, if any. */
+function listMatches(entries: ConfigEntry[], alwaysIgnore: string[], fsPath: string, isDir: boolean): (IgnoreMatch | undefined)[] {
+  const result: (IgnoreMatch | undefined)[] = [];
   for (const entry of entries) {
     const rel = relativeTo(entry.contextPath, fsPath);
     if (rel === undefined) continue;
     for (const list of entry.lists) {
-      if (!ignores([...alwaysIgnore, ...list.patterns], rel, isDir)) continue;
+      if (!ignores([...alwaysIgnore, ...list.patterns], rel, isDir)) {
+        result.push(undefined);
+        continue;
+      }
       // Name the rule: a pattern of this list on its own, else one of the settings.
       const own = list.patterns.find((p) => !p.startsWith('!') && ignores([p], rel, isDir));
-      if (own) return { pattern: own, source: 'sftp.json', list };
+      if (own) {
+        result.push({ pattern: own, source: 'sftp.json', list });
+        continue;
+      }
       const setting = alwaysIgnore.find((p) => !p.startsWith('!') && ignores([p], rel, isDir));
-      return { pattern: setting ?? alwaysIgnore.join(', '), source: 'setting' };
+      result.push({ pattern: setting ?? alwaysIgnore.join(', '), source: 'setting' });
     }
   }
-  return undefined;
+  return result;
+}
+
+/** The pattern that excludes the path, or undefined when it may be uploaded to at least one server. */
+export function matchPath(entries: ConfigEntry[], alwaysIgnore: string[], fsPath: string, isDir: boolean): IgnoreMatch | undefined {
+  const matches = listMatches(entries, alwaysIgnore, fsPath, isDir);
+  return matches.length && matches.every((m) => m) ? matches[0] : undefined;
+}
+
+/** The first pattern that excludes the path for some server, or undefined when every server may upload it. */
+export function matchPathAny(entries: ConfigEntry[], alwaysIgnore: string[], fsPath: string, isDir: boolean): IgnoreMatch | undefined {
+  return listMatches(entries, alwaysIgnore, fsPath, isDir).find((m) => m);
 }
 
 /** The entries whose context contains the path. */
@@ -121,22 +139,28 @@ export function formattingOf(text: string): FormattingOptions {
   return indent.startsWith('\t') ? { insertSpaces: false, tabSize: 4, eol } : { insertSpaces: true, tabSize: indent.length, eol };
 }
 
-/** The anchored pattern for one path: "/.env" for a file, "/wp-content/cache/" for a folder. */
+/**
+ * The anchored pattern for one path: "/.env" for a file, "/wp-content/cache/" for a folder.
+ * Glob characters are escaped, so "/app/\[slug\]/page.tsx" matches the folder named [slug] and nothing else.
+ * A "?" stays as it is: it cannot be escaped in the ignore package, and it matches the "?" itself too.
+ */
 export function patternFor(rel: string, isDir: boolean): string {
-  return `/${rel}${isDir ? '/' : ''}`;
+  const escaped = rel.replace(/[\\*[\]]/g, '\\$&').replace(/ $/, '\\ ');
+  return `/${escaped}${isDir ? '/' : ''}`;
 }
 
 function setList(text: string, list: IgnoreList, patterns: string[]): string {
   return applyEdits(text, modify(text, list.jsonPath, patterns, { formattingOptions: formattingOf(text) }));
 }
 
-/** Adds the path to the "ignore" list of every server whose context contains it. */
+/** Adds the path to the "ignore" list of every server whose context contains it and does not exclude it yet. */
 export function addPath(text: string, folderPath: string, fsPath: string, isDir: boolean): { text: string; added: string[] } {
   const added: string[] = [];
   for (const entry of entriesFor(parseEntries(text, folderPath), fsPath)) {
-    const pattern = patternFor(relativeTo(entry.contextPath, fsPath)!, isDir);
+    const rel = relativeTo(entry.contextPath, fsPath)!;
+    const pattern = patternFor(rel, isDir);
     for (const list of entry.lists) {
-      if (list.patterns.includes(pattern)) continue;
+      if (list.patterns.includes(pattern) || ignores(list.patterns, rel, isDir)) continue;
       text = setList(text, list, [...list.patterns, pattern]);
       added.push(`${pattern} → ${list.label}`);
     }
@@ -149,7 +173,8 @@ export function removePath(text: string, folderPath: string, fsPath: string): { 
   const removed: string[] = [];
   for (const entry of entriesFor(parseEntries(text, folderPath), fsPath)) {
     const rel = relativeTo(entry.contextPath, fsPath)!;
-    const exact = new Set([`/${rel}`, `/${rel}/`]);
+    // The escaped form written by addPath, and the unescaped form of version 0.2.0.
+    const exact = new Set([patternFor(rel, false), patternFor(rel, true), `/${rel}`, `/${rel}/`]);
     // A plain name at the top of the context ("wp-config.php") was most likely meant for that file.
     if (!rel.includes('/')) exact.add(rel).add(`${rel}/`);
     for (const list of entry.lists) {
