@@ -84,15 +84,14 @@ export async function scan(roots: string[], opts: ScanOptions): Promise<ScanResu
       for (const entry of entries) {
         const childAbs = path.join(absolute, entry.name);
         const childRel = rel ? `${rel}/${entry.name}` : entry.name;
-        await visit(childAbs, childRel, entry.isSymbolicLink(), false);
+        await visit(childAbs, childRel, entry.isSymbolicLink());
       }
     } finally {
       ancestors.delete(real);
     }
   }
 
-  /** explicit: selected by the user, so the ignore list does not apply to it. */
-  async function visit(absolute: string, rel: string, isLink: boolean, explicit: boolean): Promise<void> {
+  async function visit(absolute: string, rel: string, isLink: boolean): Promise<void> {
     if (isLink && !opts.followSymlinks) {
       skipped.push(`${rel}: symbolic link (following links is turned off)`);
       return;
@@ -109,7 +108,8 @@ export async function scan(roots: string[], opts: ScanOptions): Promise<ScanResu
       skipped.push(`${rel}: not a regular file`);
       return;
     }
-    if (!explicit && isIgnored(rel, isDir)) {
+    // Also for items selected on their own: a file marked "never upload" must not go up by being clicked.
+    if (isIgnored(rel, isDir)) {
       ignored++;
       return;
     }
@@ -129,7 +129,7 @@ export async function scan(roots: string[], opts: ScanOptions): Promise<ScanResu
     const rel = toRel(opts.contextPath, root);
     if (rel.startsWith('..') || path.isAbsolute(rel)) throw new Error(`${root} is outside the sftp.json context`);
     const lst = await fs.promises.lstat(root);
-    await visit(root, rel, lst.isSymbolicLink(), true);
+    await visit(root, rel, lst.isSymbolicLink());
   }
 
   // Make sure the folder of every file is known, also for files selected on their own.

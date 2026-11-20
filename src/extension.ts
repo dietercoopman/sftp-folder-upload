@@ -5,12 +5,14 @@ import * as os from 'os';
 import { isInside, loadServers, ServerConfig } from './config';
 import { connect } from './connect';
 import { forgetTrustedHostKeys, initHostKeys } from './hostKeys';
+import { NeverUpload, targetsOf } from './neverUpload';
 import { buildPlan, createDirs, inspectRemote, runPool } from './plan';
 import { CancelledScan, LocalFile, scan } from './scan';
 import { CancelledError, errorMessage, log, output } from './util';
 
 export function activate(context: vscode.ExtensionContext) {
   initHostKeys(context.globalState);
+  const neverUpload = new NeverUpload();
 
   const command = (id: string, fn: (...args: any[]) => Promise<unknown>) =>
     vscode.commands.registerCommand(id, async (...args: any[]) => {
@@ -26,7 +28,14 @@ export function activate(context: vscode.ExtensionContext) {
 
   context.subscriptions.push(
     output,
+    neverUpload,
     command('sftpFolderUpload.upload', uploadSelection),
+    command('sftpFolderUpload.neverUpload', (clicked?: vscode.Uri, selected?: vscode.Uri[]) =>
+      neverUpload.neverUpload(targetsOf(clicked, selected))
+    ),
+    command('sftpFolderUpload.allowUpload', (clicked?: vscode.Uri, selected?: vscode.Uri[]) =>
+      neverUpload.allowUpload(targetsOf(clicked, selected))
+    ),
     command('sftpFolderUpload.uploadProject', uploadProject),
     command('sftpFolderUpload.showLog', async () => output.show()),
     vscode.commands.registerCommand('sftpFolderUpload.forgetTrustedHostKeys', forgetTrustedHostKeys)
@@ -41,10 +50,7 @@ export function deactivate() {}
 
 /** Explorer / editor context menu: the clicked item, or every selected item. From the palette: the active file. */
 async function uploadSelection(clicked?: vscode.Uri, selected?: vscode.Uri[]): Promise<void> {
-  let targets = selected?.length ? selected : clicked ? [clicked] : [];
-  if (!targets.length && vscode.window.activeTextEditor) targets = [vscode.window.activeTextEditor.document.uri];
-  targets = targets.filter((u) => u.scheme === 'file');
-  if (!targets.length) throw new Error('Select a local file or folder in the Explorer to upload.');
+  const targets = targetsOf(clicked, selected);
 
   const folders = new Set(targets.map((t) => vscode.workspace.getWorkspaceFolder(t)));
   if (folders.has(undefined)) throw new Error('Only files and folders inside the open workspace can be uploaded.');
@@ -142,7 +148,7 @@ async function runUpload(server: ServerConfig, roots: string[]): Promise<void> {
           (result.links.length ? `, through ${plural(result.links.length, 'symbolic link')}` : '')
       );
       if (!result.files.length && !result.dirs.length) {
-        vscode.window.showInformationMessage('Nothing to upload: every selected item is ignored or skipped.');
+        vscode.window.showInformationMessage('Nothing to upload: the selection is set to never upload, ignored or skipped (see the log).');
         return;
       }
 
