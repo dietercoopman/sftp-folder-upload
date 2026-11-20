@@ -1,16 +1,17 @@
 # SFTP Folder Upload
 
+[![VS Marketplace](https://vsmarketplacebadges.dev/version-short/delta-solutions.sftp-folder-upload.svg?color=0f172a)](https://marketplace.visualstudio.com/items?itemName=delta-solutions.sftp-folder-upload)
+[![Installs](https://vsmarketplacebadges.dev/installs-short/delta-solutions.sftp-folder-upload.svg?color=0f172a)](https://marketplace.visualstudio.com/items?itemName=delta-solutions.sftp-folder-upload)
+[![Rating](https://vsmarketplacebadges.dev/rating-short/delta-solutions.sftp-folder-upload.svg?color=0f172a)](https://marketplace.visualstudio.com/items?itemName=delta-solutions.sftp-folder-upload&ssr=false#review-details)
+[![License: MIT](https://img.shields.io/badge/license-MIT-0f172a)](LICENSE)
+
 ![Upload the whole folder at once. Symlinks included.](images/marketplace/hero.png)
 
-**Upload a folder, or your whole project, to your server in one go.** Right-click it in the Explorer, choose **Upload to Server**, and everything goes up over SFTP or FTPS. Symbolic links are followed, the way PhpStorm does it.
+**Upload a folder, or your whole project, to your server in one go.** Right-click it in the Explorer, choose **Upload to Server**, and everything goes up over SFTP or FTPS. Only what changed on the server is sent, symbolic links are followed the way PhpStorm does it, and your `.env` stays home.
 
 It reads the `.vscode/sftp.json` you already have, so there is nothing to set up.
 
-[![VS Marketplace](https://vsmarketplacebadges.dev/version-short/delta-solutions.sftp-folder-upload.svg?color=0f172a)](https://marketplace.visualstudio.com/items?itemName=delta-solutions.sftp-folder-upload)
-[![Installs](https://vsmarketplacebadges.dev/installs-short/delta-solutions.sftp-folder-upload.svg?color=0f172a)](https://marketplace.visualstudio.com/items?itemName=delta-solutions.sftp-folder-upload)
-[![License: MIT](https://img.shields.io/badge/license-MIT-0f172a)](LICENSE)
-
-**Install:** search for *SFTP Folder Upload* in the Extensions view, or open `vscode:extension/delta-solutions.sftp-folder-upload`. Free, MIT licensed, macOS, Windows and Linux.
+**[Install from the VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=delta-solutions.sftp-folder-upload)** · or search for *SFTP Folder Upload* in the Extensions view · Free, MIT licensed, macOS, Windows and Linux.
 
 ## Why
 
@@ -25,6 +26,24 @@ SFTP Folder Upload closes that gap:
 - **Nothing you don't want.** `.git`, `.vscode` and `.idea` stay home too. Nothing is ever deleted on the server.
 - **Permissions stay as they are.** Existing files keep their owner and mode. New files get the server's defaults.
 - **Your existing config.** Same `.vscode/sftp.json` as Git SFTP Upload, SFTP Remote Editor and the SFTP extension by Natizyskunk, including profiles and multiple servers.
+
+### Made for sites you deploy by hand
+
+Not every site has a deploy pipeline. A WordPress site with plugins in their own repositories, a PHP or Laravel app on a VPS, a static site on shared hosting, a staging server for a client: you work locally and copy the result over SFTP. SFTP Folder Upload makes that one right-click, and leaves out what should not go.
+
+| | FTP client by hand | File by file from VS Code | **SFTP Folder Upload** |
+|---|:---:|:---:|:---:|
+| A whole folder or project at once | Yes, drag and drop | No | **Yes, one right-click** |
+| Symlinked plugins and folders | Depends on the client | Usually skipped | **Yes, like PhpStorm** |
+| Sends only what changed | Depends on overwrite rules | You pick the files | **Yes, compared with the server** |
+| Keeps `.env` off the server | If you remember | If you remember | **Yes, Never Upload** |
+| Host key check and a log of every file | Varies | Varies | **Yes** |
+
+## Get started in 30 seconds
+
+1. **Install** the extension.
+2. **Point it at your server** with a `.vscode/sftp.json` (see [Configuration](#configuration)). Already using Git SFTP Upload, SFTP Remote Editor or the SFTP extension by Natizyskunk? Then you have one, skip this step.
+3. **Right-click a folder** in the Explorer › **Upload to Server**, confirm, done. Right-click `.env` › **Never Upload** while you are there.
 
 ## A quick tour
 
@@ -54,12 +73,10 @@ Over SFTP several files are uploaded at the same time on one connection. The pro
 
 ![The Output panel with the upload log, the progress notification and the result](images/marketplace/progress.png)
 
-## How it works
+## Uploading
 
-1. Install the extension.
-2. Make sure your project has a `.vscode/sftp.json` (see below). If you use Git SFTP Upload, SFTP Remote Editor or the SFTP extension by Natizyskunk, you already have one.
-3. Right-click a folder or file in the Explorer › **Upload to Server**. Or run **SFTP Folder Upload: Upload Project to Server** from the Command Palette.
-4. Confirm. Done.
+- **A folder or file:** right-click it in the Explorer, or on an editor tab, › **Upload to Server**. Several items can be selected at once.
+- **The whole project:** **SFTP Folder Upload: Upload Project to Server** in the Command Palette.
 
 When more than one server matches (profiles, or an array of configs), you choose where to upload. The entry's `defaultProfile` is listed first.
 
@@ -107,6 +124,8 @@ Settings:
 - **Permissions are kept.** Files are written without changing their mode, so nothing becomes world-writable by being uploaded.
 - **Trusted workspaces only.** The extension stays disabled in Restricted Mode, because the workspace itself decides which servers it connects to.
 
+Found a security issue? Please report it privately, see [SECURITY.md](SECURITY.md).
+
 ## FAQ
 
 **Where is the Never Upload list stored?**
@@ -124,6 +143,28 @@ Yes. Right-click `wp-content/plugins/your-plugin` and choose **Upload to Server*
 **How is this different from Git SFTP Upload?**
 Git SFTP Upload uploads the files you changed in git, from the Source Control view. SFTP Folder Upload uploads whole folders, including symlinked ones, and compares with the server instead of with git. Both read the same `sftp.json`.
 
+**Does it replace the SFTP extension by Natizyskunk?**
+No, it complements it. That extension syncs, downloads, diffs and uploads on save. SFTP Folder Upload uploads folders in one go, symlinks included, and keeps what is on the Never Upload list off the server. Both read the same `sftp.json` and can be installed together.
+
+**Do I need git?**
+No. SFTP Folder Upload compares your files with the server, not with git. For uploading only the files git says you changed, use [Git SFTP Upload](https://marketplace.visualstudio.com/items?itemName=delta-solutions.git-sftp-upload).
+
+**Can I upload to staging and production?**
+Yes. Use `profiles` or an array of configs in `sftp.json`. You choose the server at upload time, with the `defaultProfile` listed first.
+
+## Works well with
+
+All three read the same `.vscode/sftp.json` and share the same `ignore` list.
+
+- **[Git SFTP Upload](https://marketplace.visualstudio.com/items?itemName=delta-solutions.git-sftp-upload):** upload only the files you changed in git, in one click from Source Control.
+- **[SFTP Remote Editor](https://marketplace.visualstudio.com/items?itemName=delta-solutions.sftp-remote-editor):** open and edit files straight on the server.
+
+## Like it?
+
+- **Rate it** on the [Marketplace](https://marketplace.visualstudio.com/items?itemName=delta-solutions.sftp-folder-upload&ssr=false#review-details). A short review helps other developers find it.
+- **Star it** on [GitHub](https://github.com/dietercoopman/sftp-folder-upload).
+- **Ideas or bugs?** [Open an issue](https://github.com/dietercoopman/sftp-folder-upload/issues/new/choose).
+
 ## Publisher
 
-[Delta Solutions](https://www.deltasolutions.be/). Source on [GitHub](https://github.com/dietercoopman/sftp-folder-upload); issues and ideas are welcome there.
+Made by [Delta Solutions](https://www.deltasolutions.be/) in Belgium. More free tools in the [Delta Tools Center](https://www.deltasolutions.be/delta-tools-center/).

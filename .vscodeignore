@@ -10,3 +10,4 @@ tsconfig.json
 test/**
 docs/**
 images/icon.svg
+.github/**
