@@ -1,0 +1,160 @@
+{
+  "name": "sftp-folder-upload",
+  "displayName": "SFTP Folder Upload",
+  "description": "Upload a folder or your whole project to your server over SFTP or FTPS in one go, following symbolic links like PhpStorm does. Ideal for WordPress sites with plugins symlinked from their own git repositories. Uses your existing .vscode/sftp.json.",
+  "version": "0.1.0",
+  "publisher": "delta-solutions",
+  "author": "Delta Solutions",
+  "license": "MIT",
+  "homepage": "https://www.deltasolutions.be/",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/dietercoopman/sftp-folder-upload.git"
+  },
+  "bugs": {
+    "url": "https://github.com/dietercoopman/sftp-folder-upload/issues"
+  },
+  "keywords": [
+    "sftp",
+    "ftps",
+    "ftp",
+    "upload",
+    "deploy",
+    "symlink",
+    "symbolic link",
+    "wordpress",
+    "plugins",
+    "upload folder",
+    "web development"
+  ],
+  "pricing": "Free",
+  "icon": "images/icon.png",
+  "galleryBanner": {
+    "color": "#0f172a",
+    "theme": "dark"
+  },
+  "engines": {
+    "vscode": "^1.80.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "main": "./out/extension.js",
+  "activationEvents": [],
+  "capabilities": {
+    "untrustedWorkspaces": {
+      "supported": false,
+      "description": "Connects to the servers defined in the workspace's sftp.json, so it only runs in trusted workspaces."
+    },
+    "virtualWorkspaces": {
+      "supported": false,
+      "description": "Reads local files and .vscode/sftp.json from the local file system."
+    }
+  },
+  "contributes": {
+    "commands": [
+      {
+        "command": "sftpFolderUpload.upload",
+        "title": "Upload to Server",
+        "category": "SFTP Folder Upload",
+        "icon": "$(cloud-upload)"
+      },
+      {
+        "command": "sftpFolderUpload.uploadProject",
+        "title": "Upload Project to Server",
+        "category": "SFTP Folder Upload",
+        "icon": "$(cloud-upload)"
+      },
+      {
+        "command": "sftpFolderUpload.showLog",
+        "title": "Show Log",
+        "category": "SFTP Folder Upload"
+      },
+      {
+        "command": "sftpFolderUpload.forgetTrustedHostKeys",
+        "title": "Forget Trusted Host Keys",
+        "category": "SFTP Folder Upload"
+      }
+    ],
+    "menus": {
+      "explorer/context": [
+        {
+          "command": "sftpFolderUpload.upload",
+          "when": "resourceScheme == file",
+          "group": "7_sftpFolderUpload@1"
+        }
+      ],
+      "editor/title/context": [
+        {
+          "command": "sftpFolderUpload.upload",
+          "when": "resourceScheme == file",
+          "group": "7_sftpFolderUpload@1"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "SFTP Folder Upload",
+      "properties": {
+        "sftpFolderUpload.configFile": {
+          "type": "string",
+          "default": ".vscode/sftp.json",
+          "description": "Path (relative to the workspace folder, and inside it) to the SFTP config. Defaults to the same file used by Git SFTP Upload, SFTP Remote Editor and the SFTP extension by Natizyskunk."
+        },
+        "sftpFolderUpload.followSymlinks": {
+          "type": "boolean",
+          "default": true,
+          "description": "Upload the contents of symbolically linked files and folders, at the place of the link in your project (like PhpStorm). When off, links are skipped."
+        },
+        "sftpFolderUpload.alwaysIgnore": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [
+            ".git",
+            ".svn",
+            ".hg",
+            ".vscode",
+            ".idea",
+            ".DS_Store",
+            "Thumbs.db"
+          ],
+          "description": "Patterns (gitignore syntax, relative to the sftp.json context) that are never uploaded, in addition to the \"ignore\" list in sftp.json."
+        },
+        "sftpFolderUpload.confirm": {
+          "type": "boolean",
+          "default": true,
+          "description": "Ask before uploading, showing how many files differ from the server. When off, the changed files are uploaded right away."
+        },
+        "sftpFolderUpload.parallelUploads": {
+          "type": "number",
+          "default": 4,
+          "minimum": 1,
+          "maximum": 16,
+          "description": "Files uploaded at the same time over SFTP. FTP always uploads one file at a time."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "compile": "tsc -p ./ --noEmit && node esbuild.mjs",
+    "watch": "node esbuild.mjs --watch",
+    "vscode:prepublish": "npm run compile",
+    "package": "vsce package",
+    "publish": "vsce publish"
+  },
+  "dependencies": {
+    "basic-ftp": "^5.3.1",
+    "ignore": "^5.3.2",
+    "jsonc-parser": "^3.3.1",
+    "ssh2-sftp-client": "^11.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@types/ssh2-sftp-client": "^9.0.4",
+    "@types/vscode": "^1.80.0",
+    "@vscode/vsce": "^4.0.0",
+    "esbuild": "^0.28.2",
+    "typescript": "^5.6.0"
+  }
+}
