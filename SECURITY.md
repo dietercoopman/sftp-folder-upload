@@ -4,7 +4,7 @@ SFTP Folder Upload sends files and credentials to your servers, so security repo
 
 ## Supported versions
 
-Only the latest version on the [VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=delta-solutions.sftp-folder-upload) receives fixes. VS Code updates extensions automatically, so a fix reaches users quickly.
+Only the latest version on the [VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=delta-solutions.sftp-folder-upload) and [Open VSX](https://open-vsx.org/extension/delta-solutions/sftp-folder-upload) receives fixes. VS Code updates extensions automatically, so a fix reaches users quickly.
 
 ## Reporting a vulnerability
 

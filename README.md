@@ -3,6 +3,7 @@
 [![VS Marketplace](https://vsmarketplacebadges.dev/version-short/delta-solutions.sftp-folder-upload.svg?color=0f172a)](https://marketplace.visualstudio.com/items?itemName=delta-solutions.sftp-folder-upload)
 [![Installs](https://vsmarketplacebadges.dev/installs-short/delta-solutions.sftp-folder-upload.svg?color=0f172a)](https://marketplace.visualstudio.com/items?itemName=delta-solutions.sftp-folder-upload)
 [![Rating](https://vsmarketplacebadges.dev/rating-short/delta-solutions.sftp-folder-upload.svg?color=0f172a)](https://marketplace.visualstudio.com/items?itemName=delta-solutions.sftp-folder-upload&ssr=false#review-details)
+[![Open VSX](https://img.shields.io/open-vsx/v/delta-solutions/sftp-folder-upload?label=Open%20VSX&color=0f172a)](https://open-vsx.org/extension/delta-solutions/sftp-folder-upload)
 [![License: MIT](https://img.shields.io/badge/license-MIT-0f172a)](LICENSE)
 
 ![Upload the whole folder at once. Symlinks included.](images/marketplace/hero.png)
@@ -11,7 +12,7 @@
 
 It reads the `.vscode/sftp.json` you already have, so there is nothing to set up.
 
-**[Install from the VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=delta-solutions.sftp-folder-upload)** · or search for *SFTP Folder Upload* in the Extensions view · Free, MIT licensed, macOS, Windows and Linux.
+**[Install from the VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=delta-solutions.sftp-folder-upload)** · **[Open VSX for Cursor, VSCodium and Windsurf](https://open-vsx.org/extension/delta-solutions/sftp-folder-upload)** · Free, MIT licensed, macOS, Windows and Linux.
 
 ## Why
 
@@ -148,6 +149,9 @@ No, it complements it. That extension syncs, downloads, diffs and uploads on sav
 
 **Do I need git?**
 No. SFTP Folder Upload compares your files with the server, not with git. For uploading only the files git says you changed, use [Git SFTP Upload](https://marketplace.visualstudio.com/items?itemName=delta-solutions.git-sftp-upload).
+
+**Does it work with Cursor, VSCodium or Windsurf?**
+Yes, install it from [Open VSX](https://open-vsx.org/extension/delta-solutions/sftp-folder-upload).
 
 **Can I upload to staging and production?**
 Yes. Use `profiles` or an array of configs in `sftp.json`. You choose the server at upload time, with the `defaultProfile` listed first.
